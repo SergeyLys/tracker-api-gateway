@@ -1,24 +1,45 @@
-FROM node:20-alpine AS dev
+FROM node:20-alpine AS base
+
 WORKDIR /app
 
-# Install the repository's pnpm version and Nest CLI globally
-RUN npm install -g pnpm@10.21.0 @nestjs/cli
+RUN npm install -g pnpm@10.21.0
 
-# Copy the standalone shared packages and service project.
-COPY shared/logger ./shared/logger
-COPY shared/types ./shared/types
+ARG GITHUB_TOKEN
+
+ENV GITHUB_TOKEN=$GITHUB_TOKEN
+
+
+FROM base AS dev
+
+RUN npm install -g @nestjs/cli
+
 COPY backend/api-gateway ./backend/api-gateway
 
-# Build shared packages before installing the service.
-RUN cd /app/shared/logger && pnpm install --frozen-lockfile && pnpm run build
-RUN cd /app/shared/types && pnpm install --frozen-lockfile && pnpm run build
-RUN cd /app/backend/api-gateway && pnpm install --frozen-lockfile
-
-# Set working directory to service
 WORKDIR /app/backend/api-gateway
 
-# Expose gRPC port
-EXPOSE 50050
+RUN pnpm install --frozen-lockfile
 
-# Start in watch mode
+EXPOSE 3000
+
 CMD ["pnpm", "run", "start:dev"]
+
+
+FROM base AS build
+
+COPY backend/api-gateway ./backend/api-gateway
+
+WORKDIR /app/backend/api-gateway
+
+RUN pnpm install --frozen-lockfile
+RUN pnpm run build
+
+
+FROM base AS production
+
+COPY --from=build /app/backend/api-gateway/package.json ./package.json
+COPY --from=build /app/backend/api-gateway/node_modules ./node_modules
+COPY --from=build /app/backend/api-gateway/dist ./dist
+
+EXPOSE 3000
+
+CMD ["pnpm", "run", "start:prod"]

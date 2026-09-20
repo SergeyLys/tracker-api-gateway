@@ -4,8 +4,8 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
-  LoggerService,
 } from '@nestjs/common';
+import type { LoggerService } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 import type { Request, Response } from 'express';
 import type { ReqId } from 'pino-http';

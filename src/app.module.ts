@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module';
-import { PinoLoggerModule } from '@shared/logger';
+import { HealthController } from './health/health.controller';
 
 @Module({
-  imports: [AuthModule, PinoLoggerModule],
-  controllers: [],
+  imports: [AuthModule],
+  controllers: [HealthController],
   providers: [],
 })
 export class AppModule {}

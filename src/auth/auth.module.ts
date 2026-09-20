@@ -2,11 +2,15 @@ import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { AuthorizationServiceTypes } from '@shared/types';
+import { AuthorizationServiceTypes } from '@SergeyLys/tracker-contracts';
+import { protoPath } from '@SergeyLys/tracker-contracts/paths';
 import { join } from 'path';
+import { GoogleStrategy } from './google.strategy';
+import { PassportModule } from '@nestjs/passport';
 
 @Module({
   imports: [
+    PassportModule,
     ClientsModule.register([
       {
         name: AuthorizationServiceTypes.AUTH_SERVICE_NAME,
@@ -14,32 +18,12 @@ import { join } from 'path';
         options: {
           package: AuthorizationServiceTypes.protobufPackage,
           protoPath: join(
-            __dirname,
-            '..',
-            '..',
-            '..',
-            '..',
-            'shared',
-            'types',
-            'src',
-            'grpc',
+            protoPath,
             'authorization',
             'authorization-service.proto',
           ),
           loader: {
-            includeDirs: [
-              join(
-                __dirname,
-                '..',
-                '..',
-                '..',
-                '..',
-                'shared',
-                'types',
-                'src',
-                'grpc',
-              ),
-            ],
+            includeDirs: [protoPath],
           },
           url: process.env.AUTH_SERVICE_GRPC_URL,
         },
@@ -47,6 +31,6 @@ import { join } from 'path';
     ]),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, GoogleStrategy],
 })
 export class AuthModule {}
