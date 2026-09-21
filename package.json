@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@SergeyLys/tracker-contracts": "^1.0.4",
+    "@SergeyLys/tracker-pinno-logger": "^1.0.3",
     "@grpc/grpc-js": "^1.14.1",
     "@nestjs/common": "^11.1.8",
     "@nestjs/core": "^11.1.8",

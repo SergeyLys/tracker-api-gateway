@@ -25,9 +25,10 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     profile: Profile,
   ) {
     return {
-      provider: 'google',
+      provider: profile.provider,
       providerId: profile.id,
       email: profile.emails?.[0]?.value,
+      displayName: profile.displayName,
     };
   }
 }

@@ -1,9 +1,9 @@
 import { NestFactory, HttpAdapterHost } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe, BadRequestException } from '@nestjs/common';
-// import { AllExceptionsFilter } from './common/exceptions/http-exception.filter';
+import { AllExceptionsFilter } from './common/exceptions/http-exception.filter';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-// import { PinoLoggerService } from '@shared/logger';
+import { PinoLoggerService } from '@SergeyLys/tracker-pinno-logger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -24,12 +24,12 @@ async function bootstrap() {
     }),
   );
 
-  // app.useGlobalFilters(
-  //   new AllExceptionsFilter(
-  //     app.get(PinoLoggerService),
-  //     app.get(HttpAdapterHost),
-  //   ),
-  // );
+  app.useGlobalFilters(
+    new AllExceptionsFilter(
+      app.get(PinoLoggerService),
+      app.get(HttpAdapterHost),
+    ),
+  );
 
   const config = new DocumentBuilder()
     .setTitle('tracker API')

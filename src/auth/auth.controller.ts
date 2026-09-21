@@ -33,17 +33,17 @@ export class AuthController {
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  async googleCallback(@Req() req: Request & { user: { email: string } }, @Res() res: Response) {
-    const user = {
-      email: req.user?.email,
-      provider: 'google',
-    };
-    console.log(req.user);
-    const result = await this.authService.loginWithGoogle(user);
+  async googleCallback(@Req() req: Request & { user: { email: string, provider: string } }, @Res() res: Response) {
+    try {
+      const result = await this.authService.loginWithGoogle(req.user);
 
-    this.setAccessTokenCookie(res, result.accessToken);
+      this.setAccessTokenCookie(res, result.accessToken);
 
-    return res.redirect('http://localhost:3000/dashboard');
+      return res.redirect('http://localhost:3000/dashboard');
+    } catch (error) {
+      console.error('Error during Google login:', error);
+      return res.redirect('http://localhost:3000/login');
+    }
   }
 
   @Post('/login')
