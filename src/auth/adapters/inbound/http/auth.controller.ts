@@ -1,19 +1,20 @@
 import {
   Controller,
+  Get,
+  UseGuards,
+  Req,
+  Res,
   Post,
   Body,
-  Get,
-  Req,
-  UseGuards,
-  Res,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { CommonAuthTypes,  } from '@SergeyLys/tracker-contracts';
 import { AuthGuard } from '@nestjs/passport';
-import type { Request, Response } from 'express';
-
-type LoginDto = CommonAuthTypes.LoginRequest;
-type RegisterDto = CommonAuthTypes.RegisterRequest;
+import {
+  GoogleAuthRequest,
+  LoginCommand,
+  RegisterCommand,
+} from '../../../auth.types';
+import { Response } from 'express';
+import { AuthService } from '../../../ports/auth.service';
 
 @Controller('auth')
 export class AuthController {
@@ -33,7 +34,7 @@ export class AuthController {
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  async googleCallback(@Req() req: Request & { user: { email: string, provider: string } }, @Res() res: Response) {
+  async googleCallback(@Req() req: GoogleAuthRequest, @Res() res: Response) {
     try {
       const result = await this.authService.loginWithGoogle(req.user);
 
@@ -41,16 +42,14 @@ export class AuthController {
 
       return res.redirect('http://localhost:3000/dashboard');
     } catch (error) {
-      console.error('Error during Google login:', error);
+      console.error(error);
+
       return res.redirect('http://localhost:3000/login');
     }
   }
 
-  @Post('/login')
-  async login(
-    @Res() res: Response, 
-    @Body() payload: LoginDto
-  ) {
+  @Post('login')
+  async login(@Res() res: Response, @Body() payload: LoginCommand) {
     const result = await this.authService.login(payload);
 
     this.setAccessTokenCookie(res, result.accessToken);
@@ -58,8 +57,12 @@ export class AuthController {
     return res.redirect('http://localhost:3000/dashboard');
   }
 
-  @Post('/register')
-  async register(@Body() payload: RegisterDto) {
-    return this.authService.register(payload);
+  @Post('register')
+  async register(@Res() res: Response, @Body() payload: RegisterCommand) {
+    const result = await this.authService.register(payload);
+
+    this.setAccessTokenCookie(res, result.accessToken);
+
+    return res.redirect('http://localhost:3000/dashboard');
   }
 }
