@@ -4,11 +4,17 @@ import { ValidationPipe, BadRequestException } from '@nestjs/common';
 import { AllExceptionsFilter } from './common/exceptions/http-exception.filter';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { PinoLoggerService } from '@SergeyLys/tracker-pinno-logger';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.enableCors();
+  app.use(cookieParser());
+
+  app.enableCors({
+    origin: true,
+    credentials: true,
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({

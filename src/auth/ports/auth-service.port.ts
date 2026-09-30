@@ -3,6 +3,7 @@ import {
   AuthResult,
   RegisterCommand,
   GoogleLoginCommand,
+  RefreshTokenCommand
 } from '../auth.types';
 
 export interface AuthServicePort {
@@ -11,4 +12,6 @@ export interface AuthServicePort {
   register(payload: RegisterCommand): Promise<AuthResult>;
 
   loginWithGoogle(payload: GoogleLoginCommand): Promise<AuthResult>;
+
+  refresh(payload: RefreshTokenCommand): Promise<AuthResult>;
 }

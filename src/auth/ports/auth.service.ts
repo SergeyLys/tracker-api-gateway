@@ -6,6 +6,7 @@ import {
   GoogleLoginCommand,
   LoginCommand,
   RegisterCommand,
+  RefreshTokenCommand,
 } from '../auth.types';
 
 @Injectable()
@@ -25,5 +26,9 @@ export class AuthService {
 
   loginWithGoogle(payload: GoogleLoginCommand): Promise<AuthResult> {
     return this.authService.loginWithGoogle(payload);
+  }
+
+  refresh(payload: RefreshTokenCommand) {
+    return this.authService.refresh(payload);
   }
 }

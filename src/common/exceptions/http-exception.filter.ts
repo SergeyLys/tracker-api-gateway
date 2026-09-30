@@ -11,7 +11,7 @@ import type { Request, Response } from 'express';
 import type { ReqId } from 'pino-http';
 import { status as GrpcStatus } from '@grpc/grpc-js';
 import { HTTP_CODE_FROM_GRPC } from './http-grpc-mapping';
-
+import { RpcException } from '@nestjs/microservices';
 
 interface ErrorResponse {
   statusCode: number;
@@ -34,7 +34,7 @@ interface ErrorResponseBody {
   stack?: string;
 }
 
-interface GrpcError {
+interface GrpcError extends Pick<RpcException, 'getError'> {
   code: GrpcStatus;
   details: string;
 }
@@ -51,11 +51,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
     private readonly httpAdapterHost: HttpAdapterHost,
   ) {}
 
-  private isGrpcException(exception: unknown): exception is GrpcError {
-    return (exception &&
-      typeof exception === 'object' &&
-      'code' in exception &&
-      'details' in exception) as boolean;
+  private isGrpcException(exception: unknown): exception is RpcException {
+    return exception instanceof RpcException;
   }
 
   private isHttpException(exception: unknown): exception is HttpException {
@@ -68,7 +65,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     if (this.isGrpcException(exception)) {
-      return HTTP_CODE_FROM_GRPC[exception.code];
+      const error = exception.getError() as GrpcError;
+      return HTTP_CODE_FROM_GRPC[error.code];
     }
 
     return HttpStatus.INTERNAL_SERVER_ERROR;
@@ -89,8 +87,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     if (this.isGrpcException(exception)) {
+      const error = exception.getError() as GrpcError;
       return {
-        message: exception.details,
+        message: error.details,
       };
     }
     return {

@@ -1,5 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { ClientGrpc } from '@nestjs/microservices';
+import { ClientGrpc, RpcException } from '@nestjs/microservices';
 import {
   AuthorizationServiceTypes,
   Schemas,
@@ -11,6 +11,7 @@ import {
   AuthResult,
   RegisterCommand,
   GoogleLoginCommand,
+  RefreshTokenCommand,
 } from '../../../auth.types';
 
 type AuthServiceClient = AuthorizationServiceTypes.AuthServiceClient;
@@ -36,18 +37,45 @@ export class GrpcAuthServiceAdapter implements AuthServicePort {
       provider: 'password',
     });
 
-    return lastValueFrom(this.authClient.login(schema));
+    return new Promise<AuthResult>((resolve, reject) => {
+      this.authClient.login(schema).subscribe({
+        next: (res) => resolve(res),
+        error: (err) => reject(new RpcException(err)),
+      });
+    });
   }
 
   async register(payload: RegisterCommand): Promise<AuthResult> {
     const schema = Schemas.RegisterRequestSchema.parse(payload);
 
-    return lastValueFrom(this.authClient.register(schema));
+    return new Promise<AuthResult>((resolve, reject) => {
+      this.authClient.register(schema).subscribe({
+        next: (res) => resolve(res),
+        error: (err) => reject(new RpcException(err)),
+      });
+    });
   }
 
   async loginWithGoogle(payload: GoogleLoginCommand): Promise<AuthResult> {
     const schema = Schemas.LoginRequestSchema.parse(payload);
 
-    return lastValueFrom(this.authClient.loginWithGoogle(schema));
+    return new Promise<AuthResult>((resolve, reject) => {
+      this.authClient.loginWithGoogle(schema).subscribe({
+        next: (res) => resolve(res),
+        error: (err) => reject(new RpcException(err)),
+      });
+    });
+  }
+
+  async refresh(payload: RefreshTokenCommand) {
+    console.log(payload);
+    const schema = Schemas.RefreshTokenRequestSchema.parse(payload);
+
+    return new Promise<AuthResult>((resolve, reject) => {
+      this.authClient.refresh(schema).subscribe({
+        next: (res) => resolve(res),
+        error: (err) => reject(new RpcException(err)),
+      });
+    });
   }
 }
