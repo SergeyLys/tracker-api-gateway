@@ -16,6 +16,7 @@ env:
 jobs:
   publish:
     name: Build and Publish docker image
+    environment: production
     runs-on: ubuntu-latest
 
     steps:
