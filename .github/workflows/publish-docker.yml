@@ -23,74 +23,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Check AWS role secret
-        env:
-          AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
-        run: |
-          if [ -z "$AWS_ROLE_ARN" ]; then
-            echo "AWS_ROLE_ARN is missing"
-            exit 1
-          fi
-
-          echo "AWS_ROLE_ARN is provided"
-          echo "Role: ${AWS_ROLE_ARN##*/}"
-
-      - name: Debug GitHub OIDC claims
-        run: |
-          echo "Repository: $GITHUB_REPOSITORY"
-          echo "Ref: $GITHUB_REF"
-          echo "Event: $GITHUB_EVENT_NAME"
-      - name: Debug OIDC token
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const token = await core.getIDToken('sts.amazonaws.com');
-            const payload = JSON.parse(
-              Buffer.from(token.split('.')[1], 'base64url').toString()
-            );
-
-            console.log('OIDC claims:');
-            console.log(JSON.stringify({
-              iss: payload.iss,
-              aud: payload.aud,
-              sub: payload.sub,
-              repository: payload.repository,
-              ref: payload.ref,
-              event_name: payload.event_name
-            }, null, 2));
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: eu-central-1
-          audience: sts.amazonaws.com
+          aws-region: ${{ env.AWS_REGION }}
 
-      - name: Verify AWS identity
-        run: aws sts get-caller-identity
+      - name: Login to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-      # - name: Configure AWS credentials
-      #   uses: aws-actions/configure-aws-credentials@v4
-      #   with:
-      #     role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-      #     aws-region: ${{ env.AWS_REGION }}
+      - name: Build Docker image
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build \
+          -t "$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
+          .
 
-      # - name: Login to Amazon ECR
-      #   id: ecr
-      #   uses: aws-actions/amazon-ecr-login@v2
-
-      # - name: Build Docker image
-      #   env:
-      #     REGISTRY: ${{ steps.ecr.outputs.registry }}
-      #     IMAGE_TAG: ${{ github.sha }}
-      #   run: |
-      #     docker build \
-      #     -t "$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
-      #     .
-
-      # - name: Push Docker image
-      #   env:
-      #     REGISTRY: ${{ steps.ecr.outputs.registry }}
-      #     IMAGE_TAG: ${{ github.sha }}
-      #   run: |
-      #     docker push "$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+      - name: Push Docker image
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker push "$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
