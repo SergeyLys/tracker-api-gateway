@@ -35,11 +35,18 @@ jobs:
           echo "AWS_ROLE_ARN is provided"
           echo "Role: ${AWS_ROLE_ARN##*/}"
 
+      - name: Debug GitHub OIDC claims
+        run: |
+          echo "Repository: $GITHUB_REPOSITORY"
+          echo "Ref: $GITHUB_REF"
+          echo "Event: $GITHUB_EVENT_NAME"
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: eu-central-1
+          audience: sts.amazonaws.com
 
       - name: Verify AWS identity
         run: aws sts get-caller-identity
