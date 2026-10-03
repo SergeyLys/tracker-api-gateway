@@ -26,9 +26,7 @@ CMD ["pnpm", "run", "start:dev"]
 
 FROM base AS build
 
-COPY backend/api-gateway ./backend/api-gateway
-
-WORKDIR /app/backend/api-gateway
+COPY . .
 
 RUN pnpm install --frozen-lockfile
 RUN pnpm run build
@@ -36,9 +34,9 @@ RUN pnpm run build
 
 FROM base AS production
 
-COPY --from=build /app/backend/api-gateway/package.json ./package.json
-COPY --from=build /app/backend/api-gateway/node_modules ./node_modules
-COPY --from=build /app/backend/api-gateway/dist ./dist
+COPY --from=build /app/package.json ./package.json
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
 
 EXPOSE 3000
 
