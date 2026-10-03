@@ -37,7 +37,7 @@ jobs:
         env:
           REGISTRY: ${{ steps.ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
         run: |
           docker build \
             --target production \
