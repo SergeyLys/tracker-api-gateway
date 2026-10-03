@@ -37,9 +37,11 @@ jobs:
         env:
           REGISTRY: ${{ steps.ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           docker build \
             --target production \
+            --secret id=github_token,env=GITHUB_TOKEN \
             -t "$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
             .
 
