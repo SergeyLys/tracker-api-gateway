@@ -1,4 +1,4 @@
-name: Publish docker image
+name: Publish
 
 on:
   push:
@@ -9,45 +9,13 @@ permissions:
   id-token: write
   contents: read
 
-env:
-  AWS_REGION: eu-central-1
-  ECR_REPOSITORY: gymtracker/api-gateway
-
 jobs:
   publish:
-    name: Build and Publish docker image
-    environment: production
-    runs-on: ubuntu-latest
+    uses: SergeyLys/tracker-pipelines/.github/workflows/docker-publish.yml@master
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    with:
+      ecr_repository: gymtracker/api-gateway
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Login to Amazon ECR
-        id: ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Build Docker image
-        env:
-          REGISTRY: ${{ steps.ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
-          GITHUB_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
-        run: |
-          docker build \
-            --target production \
-            --secret id=github_token,env=GITHUB_TOKEN \
-            -t "$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
-            .
-
-      - name: Push Docker image
-        env:
-          REGISTRY: ${{ steps.ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          docker push "$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+    secrets:
+      aws_role_arn: ${{ secrets.AWS_ROLE_ARN }}
+      github_packages_token: ${{ secrets.GH_PACKAGES_TOKEN }}
