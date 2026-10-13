@@ -4,7 +4,6 @@ import {
   AuthorizationServiceTypes,
   Schemas,
 } from '@SergeyLys/tracker-contracts';
-import { lastValueFrom } from 'rxjs';
 import { AuthServicePort } from '../../../ports/auth-service.port';
 import {
   LoginCommand,
@@ -26,6 +25,7 @@ export class GrpcAuthServiceAdapter implements AuthServicePort {
   ) {}
 
   onModuleInit() {
+    console.log('on Module uinit');
     this.authClient = this.client.getService<AuthServiceClient>(
       AuthorizationServiceTypes.AUTH_SERVICE_NAME,
     );
@@ -68,7 +68,6 @@ export class GrpcAuthServiceAdapter implements AuthServicePort {
   }
 
   async refresh(payload: RefreshTokenCommand) {
-    console.log(payload);
     const schema = Schemas.RefreshTokenRequestSchema.parse(payload);
 
     return new Promise<AuthResult>((resolve, reject) => {

@@ -16,6 +16,7 @@ import {
 } from '../../../auth.types';
 import { Request, Response } from 'express';
 import { AuthService } from '../../../ports/auth.service';
+import { Public } from '../../../../shared/decorators/public.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -34,10 +35,12 @@ export class AuthController {
     });
   }
 
+  @Public()
   @Get('google')
   @UseGuards(AuthGuard('google'))
   googleLogin() {}
 
+  @Public()
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleCallback(@Req() req: GoogleAuthRequest, @Res() res: Response) {
@@ -52,6 +55,7 @@ export class AuthController {
     }
   }
 
+  @Public()
   @Post('login')
   async login(@Res() res: Response, @Body() payload: LoginCommand) {
     const result = await this.authService.login(payload);
@@ -61,6 +65,7 @@ export class AuthController {
     return res.redirect('http://localhost:3000/dashboard');
   }
 
+  @Public()
   @Post('register')
   async register(@Res() res: Response, @Body() payload: RegisterCommand) {
     const result = await this.authService.register(payload);
@@ -70,6 +75,7 @@ export class AuthController {
     return res.redirect('http://localhost:3000/dashboard');
   }
 
+  @Public()
   @Post('refresh')
   async refresh(@Req() req: Request, @Res() res: Response) {
     const result = await this.authService.refresh({

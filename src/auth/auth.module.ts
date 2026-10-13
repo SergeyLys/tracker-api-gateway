@@ -9,6 +9,9 @@ import { PassportModule } from '@nestjs/passport';
 import { AuthService } from './ports/auth.service';
 import { GrpcAuthServiceAdapter } from './adapters/outbound/grpc/grpc-auth-service.adapter';
 import { AUTH_SERVICE_PORT } from './ports/auth-service.token';
+import { JwtVerifierService } from './jwt-verifier.service';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from '../shared/guards/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -36,10 +39,16 @@ import { AUTH_SERVICE_PORT } from './ports/auth-service.token';
   providers: [
     GoogleStrategy,
     AuthService,
+    JwtVerifierService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
     {
       provide: AUTH_SERVICE_PORT,
       useClass: GrpcAuthServiceAdapter,
     },
   ],
+  exports: [JwtVerifierService],
 })
 export class AuthModule {}
